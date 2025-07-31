@@ -71,12 +71,18 @@
 MEMORY
 {
  ROM (rx) : ORIGIN = 0x00020000, LENGTH = 0x00010000
- FLASH (r) : ORIGIN = (0x2C000000 + 0), LENGTH = (0x1000000 - ((0x2C000000 + 0) - 0x2C000000))
- FLASHX (rx) : ORIGIN = (((0x2C000000 + 0)) - 0x2C000000 + 0x0C000000), LENGTH = (0x1000000 - ((0x2C000000 + 0) - 0x2C000000))
- FLASH_NC (r) : ORIGIN = (((0x2C000000 + 0)) - 0x2C000000 + 0x28000000), LENGTH = (0x1000000 - ((0x2C000000 + 0) - 0x2C000000))
- RAM (rwx) : ORIGIN = 0x20000000, LENGTH = (0x20000000 + (0x201C0000 + 0x00040000 - 0x20000000 - 0 - 0x80000) - 0x20000000) - 0x13000
- RAMX (rx) : ORIGIN = ((0x20000000) - 0x20000000 + (0x20000000 - 0x20000000 + 0x00200000)), LENGTH = (0x20000000 + (0x201C0000 + 0x00040000 - 0x20000000 - 0 - 0x80000) - 0x20000000) - 0x13000
- FRAMX (rwx) : ORIGIN = ((0x20000000) - 0x20000000 + (0x20000000 - 0x20000000 + 0x00200000)) + (0x20000000 + (0x201C0000 + 0x00040000 - 0x20000000 - 0 - 0x80000) - 0x20000000) - 0x13000, LENGTH = 0x13000
+ FLASH (r) : ORIGIN = (0x2C000000 + 0x150000), LENGTH = (0x1000000 - ((0x2C000000 + 0x150000) - 0x2C000000))
+ FLASHX (rx) : ORIGIN = (((0x2C000000 + 0x150000)) - 0x2C000000 + 0x0C000000), LENGTH = (0x1000000 - ((0x2C000000 + 0x150000) - 0x2C000000))
+ FLASH_NC (r) : ORIGIN = (((0x2C000000 + 0x150000)) - 0x2C000000 + 0x28000000), LENGTH = (0x1000000 - ((0x2C000000 + 0x150000) - 0x2C000000))
+ RAM (rwx) : ORIGIN = ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0), LENGTH = (((0x201C0000 + 0x00040000 - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0 - 0x80000)) - 0) - 0x13000
+ RAMX (rx) : ORIGIN = ((((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0)) - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) + (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000)), LENGTH = (((0x201C0000 + 0x00040000 - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0 - 0x80000)) - 0) - 0x13000
+ FRAMX (rwx) : ORIGIN = ((((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0)) - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) + (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000)) + (((0x201C0000 + 0x00040000 - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0 - 0x80000)) - 0) - 0x13000, LENGTH = 0x13000
+ PSRAM (rwx) : ORIGIN = (0x34000000), LENGTH = 0x800000-0-0-0
+ PSRAM_NC (rwx) : ORIGIN = (((0x34000000)) - 0x34000000 + 0x30000000), LENGTH = 0x800000-0-0-0
+ PSRAMX (rwx) : ORIGIN = (((0x34000000)) - 0x34000000 + 0x14000000), LENGTH = 0x800000-0-0-0
+ PSRAMUHS (rwx) : ORIGIN = (0x3C000000 + 0x2000000-0), LENGTH = 0
+ PSRAMUHS_NC (rwx) : ORIGIN = (((0x3C000000 + 0x2000000-0)) - 0x3C000000 + 0x38000000), LENGTH = 0
+ PSRAMUHSX (rx) : ORIGIN = (((0x3C000000 + 0x2000000-0)) - 0x3C000000 + 0x1C000000), LENGTH = 0
 }
 /* Linker script to place sections and symbol values. Should be used together
  * with other linker script that defines memory regions FLASH and RAM.
@@ -145,7 +151,7 @@ MEMORY
 ENTRY(Boot_Loader)
 SECTIONS
 {
- __export_fn_rom = (ORIGIN(ROM) + LENGTH(ROM) - 40 - 128);
+__export_fn_rom = (ORIGIN(ROM) + LENGTH(ROM) - 40 - 128);
  .boot_struct (ORIGIN(FLASH)) :
  {
   __flash_start = .;
@@ -197,7 +203,7 @@ SECTIONS
  } > RAM
  __boot_text_sram_start_flash__ = LOADADDR(.got_info) + SIZEOF(.got_info);
  .boot_text_sram
-  (ALIGN(((.) - 0x20000000 + (0x20000000 - 0x20000000 + 0x00200000)), 32))
+  (ALIGN(((.) - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) + (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000)), 32))
   : AT (__boot_text_sram_start_flash__)
  {
   __boot_text_sram_start__ = .;
@@ -227,22 +233,24 @@ SECTIONS
   *:hal_i2c.o(.text*)
   *:hal_timer.o(.text*)
   *:hal_sysfreq.o(.text*)
-  *:hal_dma.o(.text*)
+  *:hal_psram*.o(.text*)
+  *:psram_drv*.o(.text*)
+  *:psram_opi*.o(.text*)
+  *:psram_xopi*.o(.text*)
   *:hal_trace*.o(.text*)
-  *:hal_uart.o(.text*)
-  /* If floating point printf needed, put the whole libc here */
-  *:lib_a-memchr-stub.o(.text*)
-  *:lib_a-nano-svfprintf.o(.text*)
-  *:lib_a-vsnprintf.o(.text*)
+  *:pmu_*.o(.text*)
+  *:hal_sleep.o(.text*)
+  *:hal_apsram*.o(.text*)
+  *:irq_*.o(.text*)
   *(.boot_text_sram*)
   . = ALIGN(32);
   __boot_text_sram_end__ = .;
  } > RAMX
- __boot_text_data_sram_start__ = ((__boot_text_sram_start__) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000);
+ __boot_text_data_sram_start__ = ((__boot_text_sram_start__) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0));
  __boot_text_sram_end_flash__ = __boot_text_sram_start_flash__ + SIZEOF(.boot_text_sram);
  __boot_data_sram_start_flash__ = __boot_text_sram_end_flash__;
  .boot_data_sram
-  (((ADDR(.boot_text_sram) + SIZEOF(.boot_text_sram)) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000))
+  (((ADDR(.boot_text_sram) + SIZEOF(.boot_text_sram)) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0)))
   : AT (__boot_data_sram_start_flash__)
  {
   __boot_data_sram_start__ = .;
@@ -250,11 +258,11 @@ SECTIONS
   *:norflash_*.o(EXCLUDE_FILE(*:norflash_api.o) .data* EXCLUDE_FILE(*:norflash_api.o) .rodata*)
   *:libc_rom.o(.rodata*)
   *:libc_rom_mem.o(.rodata*)
-  *:hal_*cmu_*.o(.data* .rodata*)
-  *:stack_protector*.o(.data* .rodata*)
   *:irq_*.o(.data* .rodata*)
   *:nx_start*.o(.data* .rodata*)
   *:bes_start*.o(.data* .rodata*)
+  *:hal_*cmu_*.o(.data* .rodata*)
+  *:stack_protector*.o(.data* .rodata*)
   *:hal_iomux_*.o(.data* .rodata*)
   *:hal_analogif_*.o(.data* .rodata*)
   *:hal_phyif.o(.data* .rodata*)
@@ -262,13 +270,14 @@ SECTIONS
   *:hal_i2c.o(.data* .rodata*)
   *:hal_timer.o(.data* .rodata*)
   *:hal_sysfreq.o(.data* .rodata*)
-  *:hal_dma.o(.data* .rodata*)
+  *:hal_psram*.o(.data* .rodata*)
+  *:psram_drv*.o(.data* .rodata*)
+  *:psram_opi*.o(.data* .rodata*)
+  *:psram_xopi*.o(.data* .rodata*)
   *:hal_trace*.o(.data* .rodata*)
-  *:hal_uart.o(.data* .rodata*)
-  /* If floating point printf needed, put the whole libc here */
-  *:lib_a-memchr-stub.o(.data* .rodata*)
-  *:lib_a-nano-svfprintf.o(.data* .rodata*)
-  *:lib_a-vsnprintf.o(.data* .rodata*)
+  *:pmu_*.o(.data* .rodata*)
+  *:hal_sleep.o(.data* .rodata*)
+  *:hal_apsram*.o(.data* .rodata*)
   /* Stack protector instrumentation rodata for functions in special sections */
   *(.rodata.cst4)
   *(.boot_rodata_sram*)
@@ -282,12 +291,13 @@ SECTIONS
   __boot_bss_sram_start__ = .;
   *:hal_norflash*.o(.bss*)
   *:norflash_*.o(EXCLUDE_FILE(*:norflash_api.o) .bss*)
-  *:hal_*cmu_*.o(.bss*)
-  *:stack_protector*.o(.bss*)
+  *:arm_exception*.o(.bss*)
   *:irq_*.o(.bss*)
   *:nx_start*.o(.bss*)
   *:bes_start*.o(.bss*)
   *:arm_initialize*.o(.bss*)
+  *:hal_*cmu_*.o(.bss*)
+  *:stack_protector*.o(.bss*)
   *:hal_iomux_*.o(.bss*)
   *:hal_analogif_*.o(.bss*)
   *:hal_phyif.o(.bss*)
@@ -295,25 +305,103 @@ SECTIONS
   *:hal_i2c.o(.bss*)
   *:hal_timer.o(.bss*)
   *:hal_sysfreq.o(.bss*)
-  *:hal_dma.o(.bss*)
+  *:hal_psram*.o(.bss*)
+  *:psram_drv*.o(.bss*)
+  *:psram_opi*.o(.bss*)
+  *:psram_xopi*.o(.bss*)
   *:hal_trace*.o(.bss*)
-  *:hal_uart.o(.bss*)
-  /* If floating point printf needed, put the whole libc here */
-  *:lib_a-memchr-stub.o(.bss*)
-  *:lib_a-nano-svfprintf.o(.bss*)
-  *:lib_a-vsnprintf.o(.bss*)
+  *:pmu_*.o(.bss*)
+  *:hal_sleep.o(.bss*)
+  *:hal_apsram*.o(.bss*)
   *(.boot_bss*)
   . = ALIGN(4);
   __boot_bss_sram_end__ = .;
  } > RAM
- __sram_nc_data_end_flash__ = __boot_data_sram_end_flash__;
+__sram_nc_data_end_flash__ = __boot_data_sram_end_flash__;
  __ram_extra0_text_data_end_flash__ = __sram_nc_data_end_flash__;
  __sram_text_start_flash__ = __ram_extra0_text_data_end_flash__;
  __sram_text_data_start__ = ALIGN(__boot_bss_sram_end__, 32);
- .sram_text (((__sram_text_data_start__) - 0x20000000 + (0x20000000 - 0x20000000 + 0x00200000))) : AT (__sram_text_start_flash__)
+ .sram_text (((__sram_text_data_start__) - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) + (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000))) : AT (__sram_text_start_flash__)
  {
   __sram_text_start__ = .;
   *:amr_common.o(.text*)
+  *:ip*.o(.text*)
+  *:udp*.o(.text*)
+  *:iperf*.o(.text*)
+  /* tcpip related files */
+  *:recv.o(.text*)
+  *:recvfrom.o(.text*)
+  *:send.o(.text*)
+  *:sendto.o(.text*)
+  *:socket.o(.text*)
+  *:net_sockets.o(.text*)
+  *:net_sockif.o(.text*)
+  *:net_poll.o(.text*)
+  *:inet_sockif.o(.text*)
+  *:netlink_sockif.o(.text*)
+  *:tcp_recvfrom.o(.text*)
+  *:tcp_send_buffered.o(.text*)
+  *:arp_arpin.o(.text*)
+  *:arp_out.o(.text*)
+  *:arp_send.o(.text*)
+  *:tcp_conn.o(.text*)
+  *:tcp_send.o(.text*)
+  *:tcp_input.o(.text*)
+  *:tcp_appsend.o(.text*)
+  *:tcp_monitor.o(.text*)
+  *:tcp_callback.o(.text*)
+  *:tcp_netpoll.o(.text*)
+  *:tcp_wrbuffer.o(.text*)
+  *:devif_callback.o(.text*)
+  *:devif_iobsend.o(.text*)
+  *:devif_poll.o(.text*)
+  *:devif_loopback.o(.text*)
+  *:devif_callback.o(.text*)
+  *:tcp_devpoll.o(.text*)
+  *:tcp_timer.o(.text*)
+  *:tcp_seqno.o(.text*)
+  *:tcp_recvwindow.o(.text*)
+  *:tcp_ipselect.o(.text*)
+  *:tcp_finddev.o(.text*)
+  *:net_incr32.o(.text*)
+  *:net_lock.o(.text*)
+  *:net_tcpchksum.o(.text*)
+  *:net_dev.o(.text*)
+  *:icmp_*.o(.text*)
+  /* iobuffer related files */
+  *:iob_add_queue.o(.text*)
+  *:iob_alloc.o(.text*)
+  *:iob_alloc_qentry.o(.text*)
+  *:iob_copyin.o(.text*)
+  *:iob_copyout.o(.text*)
+  *:iob_free.o(.text*)
+  *:iob_free_chain.o(.text*)
+  *:iob_peek_queue.o(.text*)
+  *:mm_free.o(.text*)
+  *:mm_malloc.o(.text*)
+  *:hal_sdio*.o(.text*)
+  *:wifi_sdio*.o(.text*)
+  *:bes_netdev*.o(.text*)
+  *:besf_driver_2003.o(.text*)
+  *:besf_wlan_2003.o(.text*)
+  *:besf_netdev_2003.o(.text*)
+  *:besf_net_arch_2003.o(.text*)
+  /* wifi adapter */
+  *:wifi_agent.o(.text*)
+  *:wifi_srv.o(.text*)
+  *:net_memory.o(.text*)
+  *:net_timer.o(.text*)
+  *:net_tasklet.o(.text*)
+  *:net_mutex.o(.text*)
+  *:net_workqueue.o(.text*)
+  /* wifi-stack v1 */
+  *:agg-rx.o(.text*)
+  *:agg-tx.o(.text*)
+  *:event.o(.text*)
+  *:tx.o(.text*)
+  *:status.o(.text*)
+  *:hw_crc.o(.text*)
+  *:queue.o(.text*)
   *:lv_disp.c.*graphics.lvgl.o(.text*)
   *:lv_event.c*graphics.lvgl.o(.text*)
   *:lv_group.c*graphics.lvgl.o(.text*)
@@ -341,7 +429,7 @@ SECTIONS
  __sram_text_end_flash__ = __sram_text_start_flash__ + SIZEOF(.sram_text);
  __sram_data_start_flash__ = __sram_text_end_flash__;
  .sram_data
-  (((ADDR(.sram_text) + SIZEOF(.sram_text)) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000))
+  (((ADDR(.sram_text) + SIZEOF(.sram_text)) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0)))
   : AT (__sram_data_start_flash__)
  {
   __sram_data_start__ = .;
@@ -368,17 +456,18 @@ SECTIONS
   . = ALIGN(4);
   __sram_data_end__ = .;
  } > RAM
- __sram_data_end_flash__ = __sram_data_start_flash__ + SIZEOF(.sram_data);
+  __sram_data_end_flash__ = __sram_data_start_flash__ + SIZEOF(.sram_data);
  .sram_bss (.) (NOLOAD) : AT (ADDR(.sram_bss))
  {
   __sram_bss_start__ = .;
   *:utils.o(.bss*)
   *(.sram_bss*)
   *(.cp_bss*)
+  *:rpc_bth_dsp.o(.bss*)
   . = ALIGN(32);
   __sram_bss_end__ = .;
  } > RAM
- __fast_sram_text_start_flash__ = __sram_data_end_flash__;
+__fast_sram_text_start_flash__ = __sram_data_end_flash__;
  .fast_text_sram : AT (__fast_sram_text_start_flash__)
  {
   __fast_sram_text_exec_start__ = .;
@@ -434,11 +523,11 @@ SECTIONS
   __fast_sram_text_exec_end__ = .;
  } > FRAMX
  __fast_sram_text_end_flash__ = __fast_sram_text_start_flash__ + SIZEOF(.fast_text_sram);
- __fast_sram_text_data_start__ = ((__fast_sram_text_exec_start__) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000);
- __fast_sram_text_data_end__ = ((__fast_sram_text_exec_end__) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000);
+ __fast_sram_text_data_start__ = ((__fast_sram_text_exec_start__) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0));
+ __fast_sram_text_data_end__ = ((__fast_sram_text_exec_end__) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0));
  __overlay_text_start_flash__ = __fast_sram_text_end_flash__;
  __overlay_text_start__ = ALIGN(__fast_sram_text_data_end__, 32);
- __overlay_text_exec_start__ = ((__overlay_text_start__) - 0x20000000 + (0x20000000 - 0x20000000 + 0x00200000));
+ __overlay_text_exec_start__ = ((__overlay_text_start__) - ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) + (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000));
  OVERLAY (__overlay_text_exec_start__) : NOCROSSREFS AT (__overlay_text_start_flash__)
  {
   .overlay_text_last
@@ -451,7 +540,7 @@ SECTIONS
  {
   __overlay_text_exec_end__ = .;
  } > FRAMX
- __fast_sram_end__ = ((__overlay_text_exec_end__) - (0x20000000 - 0x20000000 + 0x00200000) + 0x20000000);
+ __fast_sram_end__ = ((__overlay_text_exec_end__) - (((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0) - 0x20000000 + 0x00200000) + ((0x00200000 + 0 - 0x00200000 + 0x20000000) + 0));
  ASSERT(__fast_sram_end__ - __fast_sram_text_data_start__ <= 0x13000, "fast xram sections too large")
  __free_fram = 0x13000 - (__fast_sram_end__ - __fast_sram_text_data_start__);
  __overlay_data_start__ = __sram_bss_end__;
@@ -468,7 +557,64 @@ SECTIONS
   __overlay_data_end__ = .;
  } > RAM
  ASSERT(__overlay_data_end__ - __overlay_data_start__ <= 0x10000, "overlay data sections too large")
-  __psram_nc_data_end_flash__ = __load_stop_overlay_data_last;
+ __psram_text_data_start__ = ORIGIN(PSRAM);
+ __psram_text_data_start_flash__ = __load_stop_overlay_data_last;
+ .psram_text (((__psram_text_data_start__) - 0x34000000 + 0x14000000)) : AT (__psram_text_data_start_flash__)
+ {
+  __psramx_text_start__ = .;
+  *(.psram_text*)
+  . = ALIGN(32);
+  __psramx_text_end__ = .;
+ } > PSRAMX
+  .psram_data (__psram_text_data_start__ + SIZEOF(.psram_text)) :
+    AT (__psram_text_data_start_flash__ + SIZEOF(.psram_text))
+ {
+  __psram_data_start__ = .;
+  *(.psram_rodata*)
+  *(.rodata*)
+  *(.psram_data*)
+  *(.data*)
+  __psram_data_end__ = .;
+  . = ALIGN(32);
+ } > PSRAM
+ __psram_text_data_end_flash__ = __psram_text_data_start_flash__ + SIZEOF(.psram_text)+ SIZEOF(.psram_data);
+ .psram_bss (.) (NOLOAD) : AT (ADDR(.psram_bss))
+ {
+  __psram_bss_start__ = .;
+  *:*ffmpeg*.o(COMMON)
+  *(.psram_bss*)
+  *(.bss*)
+  . = ALIGN(32);
+  __psram_bss_end__ = .;
+ } > PSRAM
+ __psram_nc_data_start_flash__ = __psram_text_data_end_flash__;
+ .psram_nc_data (((.) - 0x34000000 + 0x30000000)) : AT (__psram_nc_data_start_flash__)
+ {
+  __psram_nc_data_start__ = .;
+  *(.psram_nc_rodata*)
+  . = ALIGN(32);
+  *(.psram_nc_data*)
+  . = ALIGN(32);
+  __psram_nc_data_end__ = .;
+ } > PSRAM_NC
+ __psram_nc_data_end_flash__ = __psram_nc_data_start_flash__ + SIZEOF(.psram_nc_data);
+ .psram_nc_bss (.) (NOLOAD) : AT (ADDR(.psram_nc_bss))
+ {
+  __psram_nc_bss_start__ = .;
+  *(.psram_nc_bss*)
+  *(.sync_flags_psram*)
+  . = ALIGN(32);
+  __psram_nc_bss_end__ = .;
+ } > PSRAM_NC
+  .psram_heap_bss (((.) - 0x30000000 + 0x34000000)) (NOLOAD) : AT (ADDR(.psram_heap_bss))
+ {
+  __psram_reserved_start__ = .;
+  *(.psram_reserved*)
+  __psram_reserved_end__ = .;
+  . = ALIGN(32);
+  _nuttx_heap_start = .;
+  _nuttx_heap_end = ABSOLUTE((0x34000000)+0x800000-0-0-0);
+ } > PSRAM
  __psramuhs_nc_data_end_flash__ = __psram_nc_data_end_flash__;
  __ddr_data_end_flash__ = __psramuhs_nc_data_end_flash__;
  __flash_text_data_start__ = __ddr_data_end_flash__;
@@ -479,7 +625,7 @@ SECTIONS
   KEEP(*(.init))
   KEEP(*(.fini))
  } > FLASHX
- .ARM.extab (.) : AT (((ADDR(.ARM.extab)) - 0x0C000000 + 0x2C000000))
+  .ARM.extab (.) : AT (((ADDR(.ARM.extab)) - 0x0C000000 + 0x2C000000))
  {
   *(.ARM.extab* .gnu.linkonce.armextab.*)
  } > FLASHX
@@ -500,7 +646,7 @@ SECTIONS
   . = ALIGN(4);
  } > FLASH_NC
  . = ((.) - 0x28000000 + 0x2C000000);
- .rodata (.) :
+  .rodata (.) :
  {
   *(.rodata*)
   *(.flash_rodata*)
@@ -588,7 +734,7 @@ SECTIONS
   . = ALIGN(4);
   __rpc_bth_dsp_cmd_table_start = .;
   KEEP(*(.rpc_bth_dsp_cmd_table))
-  __rpc_bth_dsp_cmd_table_end = .;
+    __rpc_bth_dsp_cmd_table_end = .;
   . = ALIGN(4);
   __rpc_m55_dsp_cmd_table_start = .;
   KEEP(*(.rpc_m55_dsp_cmd_table))
@@ -623,12 +769,12 @@ SECTIONS
   *(.note.gnu.build-id)
   . = ALIGN(4);
   _etext = .;
- } > FLASH
- /* To copy multiple FLASH to RAM sections,
+ } > FLASH 
+  /* To copy multiple FLASH to RAM sections,
 	 * uncomment .copy.table section and,
 	 * define __STARTUP_COPY_MULTIPLE in startup_ARMCMx.S */
  /*
-	.copy.table (.) :
+ 	.copy.table (.) :
 	{
 		. = ALIGN(4);
 		__copy_table_start__ = .;
@@ -720,7 +866,7 @@ SECTIONS
 	 * values to stack symbols later */
  .stack_dummy (.) (COPY) :
  {
-  . = 8192;
+  . = 3072;
   . = ALIGN(8);
  } > RAM
  /* Set stack top to end of RAM, and stack limit move down by
@@ -728,8 +874,6 @@ SECTIONS
  __StackTop = ORIGIN(RAM) + LENGTH(RAM);
  __StackLimit = __StackTop - SIZEOF(.stack_dummy);
  PROVIDE(__stack = __StackTop);
- _nuttx_heap_start = __HeapLimit;
- _nuttx_heap_end = __StackLimit - 4;
  /* Check if data + heap + stack exceeds RAM limit */
  ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
  __free_ram = __StackLimit - __HeapLimit;
@@ -739,7 +883,7 @@ SECTIONS
  __aon_mbx_data_end_load__ = __aon_mbx_data_start_load__;
  . = __aon_mbx_data_end_load__;
  . = ((.) - 0x2C000000 + 0x28000000);
-/***************************************************************************
+ /***************************************************************************
  *
  * Copyright 2023-2024 BES.
  * All rights reserved. All unpublished rights reserved.
@@ -754,6 +898,31 @@ SECTIONS
  * trademark and other intellectual property rights.
  *
  ****************************************************************************/
+.repo_delimiter0 (.) : AT (((ADDR(.repo_delimiter0)) - 0x28000000 + 0x2C000000))
+ {
+  LONG(0);
+  . = ALIGN(4);
+ } > FLASH_NC = 0x00000000
+ .repo_manifest (.) : AT (((ADDR(.repo_manifest)) - 0x28000000 + 0x2C000000))
+ {
+  KEEP(*(.repo_manifest))
+  . = ALIGN(4);
+ } > FLASH_NC = 0x00000000
+ .repo_delimiter1 (.) : AT (((ADDR(.repo_delimiter1)) - 0x28000000 + 0x2C000000))
+ {
+  LONG(0);
+  . = ALIGN(4);
+ } > FLASH_NC = 0x00000000
+ .repo_revison (.) : AT (((ADDR(.repo_revison)) - 0x28000000 + 0x2C000000))
+ {
+  KEEP(*(.repo_revision))
+  . = ALIGN(4);
+ } > FLASH_NC = 0x00000000
+ .repo_delimiter2 (.) : AT (((ADDR(.repo_delimiter2)) - 0x28000000 + 0x2C000000))
+ {
+  LONG(0);
+  . = ALIGN(4);
+ } > FLASH_NC = 0x00000000
  .build_info (.) : AT (((ADDR(.build_info)) - 0x28000000 + 0x2C000000))
  {
   KEEP(*(.build_info))
@@ -768,8 +937,8 @@ SECTIONS
   LONG(((ABSOLUTE(__flash_start)) - 0x2C000000 + 0x28000000));
  } > FLASH
  __flash_end = .;
- ASSERT(__flash_end <= __flash_start + 0x40000, "flash code size too large (should <= FLASH_IMAGE_SIZE)")
-/***************************************************************************
+ ASSERT(__flash_end <= __flash_start + 0x4B0000, "flash code size too large (should <= FLASH_IMAGE_SIZE)")
+ /***************************************************************************
  *
  * Copyright 2015-2022 BES.
  * All rights reserved. All unpublished rights reserved.
@@ -785,8 +954,9 @@ SECTIONS
  *
  ****************************************************************************/
  __flash_tail_sec_start = ORIGIN(FLASH_NC) + LENGTH(FLASH_NC) -
+       ((0x2000 + 4K - 1) & ~(4K - 1)) -
        ((0x1000 + 4K - 1) & ~(4K - 1)) -
-       ((0x1000 + 4K - 1) & ~(4K - 1)) -
+       ((0 + 4K - 1) & ~(4K - 1)) -
        ((0 + 4K - 1) & ~(4K - 1)) -
        ((0x1000 + 4K - 1) & ~(4K - 1)) * 2 -
        ((0 + 4K - 1) & ~(4K - 1)) * 2 -
@@ -894,6 +1064,12 @@ SECTIONS
   . = ((0x1000 + 4K - 1) & ~(4K - 1)) * 2;
   __userdata_end = .;
  } > FLASH_NC
+ .lte_nv (NOLOAD) :
+ {
+  __lte_nv_start = .;
+  . = ((0 + 4K - 1) & ~(4K - 1));
+  __lte_nv_end = .;
+ } > FLASH_NC
  .audio (NOLOAD) :
  {
   __aud_start = .;
@@ -909,22 +1085,12 @@ SECTIONS
  .factory (NOLOAD) :
  {
   __factory_start = .;
-  . = ((0x1000 + 4K - 1) & ~(4K - 1));
+  . = ((0x2000 + 4K - 1) & ~(4K - 1));
   __factory_end = .;
  } > FLASH_NC
- __tail_section_start = 0x28000000 + 0 + 0x40000;
+ __tail_section_start = __flash_tail_sec_start;
  ASSERT(((__tail_section_start) - 0x28000000 + 0x2C000000) >= __flash_end, "region FLASH overflowed")
  __free_flash = ((__tail_section_start) - 0x28000000 + 0x2C000000) - __flash_end;
- .ota_boot_info (0x28000000 + 0x40000+0x100000) (NOLOAD) :
- {
-  __ota_boot_info_start = .;
-  *(.ota_boot_info)
-  . = 0;
-  __ota_boot_info_bak_start = .;
-  *(.ota_boot_info_bak)
-  . = (0) * 2;
-  __ota_boot_info_end = .;
- }
  ASSERT((__vector_table_start & (1K - 1)) == 0, "vector table alignment error")
  /DISCARD/ :
  {
