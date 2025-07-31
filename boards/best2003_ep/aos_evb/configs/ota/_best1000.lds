@@ -862,7 +862,7 @@ SECTIONS
  ASSERT(__flash_end <= __flash_start + 0x80000, "flash code size too large (should <= FLASH_IMAGE_SIZE)")
 /***************************************************************************
  *
- * Copyright 2015-2022 BES.
+ * Copyright 2015-2025 BES.
  * All rights reserved. All unpublished rights reserved.
  *
  * No part of this work may be used or reproduced in any form or by any
