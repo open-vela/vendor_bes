@@ -114,7 +114,7 @@ void board_early_initialize()
   rpmsg_audio_initialize(0);
 #endif
 #if defined(CONFIG_WATCHDOG)
-  bes_wdt_initialize();
+//  bes_wdt_initialize();
 #endif
 }
 #endif
