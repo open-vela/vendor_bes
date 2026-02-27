@@ -35,7 +35,7 @@
 
 include $(TOPDIR)/Make.defs
 
-CSRCS += ap.c audio.c ota.c tee.c
+CSRCS += ap.c audio.c ota.c tee.c bes_shim.c
 
 ifeq ($(CONFIG_ARCH_BOARD_CUSTOM_BES2003_EVB),y)
 BOARD_CSRCS +=  board_bes2003evb.c
@@ -127,5 +127,7 @@ RCRAWS += etc/ta/EE571882BE621355ADAB1B7F23DEFAA6
 endif
 
 DEPPATH += --dep-path board
+DEPPATH += --dep-path $(TOPDIR)/../vendor/bes/boards/best2003_ep/aos_evb/src
 VPATH += :board
+VPATH += :$(TOPDIR)/../vendor/bes/boards/best2003_ep/aos_evb/src
 CFLAGS += $(shell $(INCDIR) "$(CC)" $(TOPDIR)$(DELIM)arch$(DELIM)$(CONFIG_ARCH)$(DELIM)src$(DELIM)board$(DELIM)board)
