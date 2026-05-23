@@ -1,0 +1,207 @@
+/****************************************************************************
+ * vendor/bes/boards/best1700_ep/src/etc/init.d/rcS.ota
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+set +e
+set -x
+
+if [ -e /dev/mmcsd0 ]
+then
+    mount -t fatfs -o autoformat /dev/mmcsd0 /emmc
+    set errcode $?
+    if [ $errcode -ne 0 ]
+    then
+        echo "/dev/mmcsd0 mount failed, errcode is" $errcode
+        reboot 0
+    fi
+else
+    reboot 0
+fi
+
+mount -t littlefs -o autoformat /dev/ota_flag /ota_flag
+set errcode $?
+if [ $errcode -ne 0 ]
+then
+    echo "/dev/ota_flag mount failed, errcode is" $errcode
+    mount -t littlefs -o forceformat /dev/ota_flag /ota_flag
+    set errcode $?
+    if [ $errcode -ne 0 ]
+    then
+        echo "/dev/ota_flag forceformat mount failed, errcode is" $errcode
+        reboot 0
+    fi
+fi
+
+kvdbd &
+
+set resetcause `resetcause`
+echo $resetcause
+set recovery_flag "cause:0x9,flag:0x4"
+
+if [ -e /dev/tee ]; then
+    echo -e -n "\xff\xff\xff\xff" > /dev/tee
+else
+    echo -e -n "\xff\xff\xff\xff" > /dev/ap
+fi
+
+if [ ! -e /emmc/ota.zip ]
+then
+    echo "ota.zip doesn't exist, will reboot to the old system"
+
+    if [ -e /dev/tee ]; then
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/tee
+    else
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/ap
+    fi
+
+    if [ $resetcause == $recovery_flag ]; then
+        echo "recovery reset system"
+        sh /etc/recovery_reset.sh
+        echo "reboot system now"
+    fi
+
+    reboot 0
+fi
+
+if [ -e /ota_flag/version ]
+then
+    cat /ota_flag/version
+    setprop ota.version.current `cat /ota_flag/version`
+else
+    setprop ota.version.current 0
+fi
+
+setprop ota.progress.current 0
+setprop ota.progress.next 15
+
+echo "verify ota.zip"
+zip_verify emmc/ota.zip /etc/key.avb
+if [ $? -ne 0 ]
+then
+    echo "verifiy filed"
+    //判断验证签名
+    setprop ota.progress.current -1
+    if [ -e /dev/tee ]; then
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/tee
+    else
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/ap
+    fi
+    reboot 0
+fi
+
+if [ ! -e /ota_flag/updating ]
+then
+    if [ -e /emmc/ota_tmp ]
+    then
+        rm -r /emmc/ota_tmp
+        echo "this is frist time enter,but exists ota_tmp,need remove it"
+    fi
+fi
+echo -e -n "0" >> /ota_flag/updating
+set ota_times `cat /ota_flag/updating`
+set ota_time_max "000"
+
+if [ $ota_times == $ota_time_max ]
+then
+    if [ ! -e /emmc/ota_tmp/dd ]
+    then
+        if [ -e /dev/tee ]; then
+            echo -e -n "\x1c\xec\x57\xbe" > /dev/tee
+        else
+            echo -e -n "\x1c\xec\x57\xbe" > /dev/ap
+        fi
+        rm -r /emmc/ota_tmp
+        rm /emmc/ota.zip
+        rm /ota_flag/updating
+        echo "try ota many times,don't update!"
+        setprop ota.progress.current -4
+        exit
+    else
+        echo -e -n "0" > /ota_flag/updating
+        echo "clear updating"
+    fi
+fi
+
+setprop ota.progress.current 15
+setprop ota.progress.next 30
+
+echo "unzip ota.zip"
+mkdir /emmc/ota_tmp
+mount -t zipfs -o /emmc/ota.zip /ota                // 将ota.zip 挂载到/ota
+if [ $? -ne 0 ]                                     //
+then                                                //
+    echo "mount /emmc/ota.zip failed, will reboot to the old system"
+                                                    //
+    rm /emmc/ota.zip                                //
+    if [ -e /dev/tee ]; then
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/tee
+    else
+        echo -e -n "\x1c\xec\x57\xbe" > /dev/ap
+    fi
+    reboot 0
+fi
+
+sh /ota/ota.sh > /dev/log
+echo "ota_progress finish"
+set ota_progress `getprop ota.progress.current`
+
+if [ -e /dev/tee ]; then
+    echo -e -n "\x1c\xec\x57\xbe" > /dev/tee
+else
+    echo -e -n "\x1c\xec\x57\xbe" > /dev/ap
+fi
+
+if [ -e /ota/nuttx_apc1.bin ]
+then
+    echo -e -n "\x1c\xec\x57\xbe" > /dev/apc1
+fi
+
+#ifdef CONFIG_BES_SECOND_FLASH
+if [ -e /ota/nuttx_bth.bin ]
+then
+    echo -e -n "\x1c\xec\x57\xbe" > /dev/bth
+fi
+if [ -e /ota/nuttx_bthcp.bin ]
+then
+    echo -e -n "\x1c\xec\x57\xbe" > /dev/bthcp
+fi
+#endif
+
+echo "ota_progress-1 is" $ota_progress
+
+if [ $ota_progress == 100 ]
+then
+    echo "ota success"
+
+    if [ -e /ota/nuttx_ota.bin ]
+    then
+        echo "ota upgrade,will swich a\b!"
+        echo -e -n "\x5a\x5a\x5a\x5a" > /dev/ota_info
+    fi
+else
+    echo "ota failed"
+fi
+
+rm /ota_flag/updating
+umount /ota
+rm -r /emmc/ota_tmp
+rm /emmc/ota.zip
+
+echo "System Mode (AP).."
+reboot 0
+echo "Boot ap failed!"

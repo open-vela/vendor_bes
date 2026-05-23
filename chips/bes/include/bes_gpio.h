@@ -71,12 +71,20 @@
 #  include <arch/chip/bes1600_gpio.h>
 #elif defined(CONFIG_ARCH_CHIP_BES1600)
 #  include <arch/chip/bes1600_gpio.h>
-#elif defined(CONFIG_ARCH_CHIP_BES1700_BTH) || defined(CONFIG_ARCH_CHIP_BES1700_SENS)
+#elif defined(CONFIG_ARCH_CHIP_BES1605) || defined(CONFIG_ARCH_CHIP_BES1605_BTH)
+#  include <arch/chip/bes1605_gpio.h>
+#elif defined(CONFIG_ARCH_CHIP_BES1607)
+#  include <arch/chip/bes1607_gpio.h>
+#elif defined(CONFIG_ARCH_CHIP_BES1700) || defined(CONFIG_ARCH_CHIP_BES1700_BTH)
 #  include <arch/chip/bes1700_gpio.h>
-#elif defined(CONFIG_ARCH_CHIP_BES1700)
-#  include <arch/chip/bes1700_gpio.h>
+#elif defined(CONFIG_ARCH_CHIP_BES1701)
+#  include <arch/chip/bes1701_gpio.h>
+#elif defined(CONFIG_ARCH_CHIP_BES1702)
+#  include <arch/chip/bes1702_gpio.h>
 #elif defined(CONFIG_ARCH_CHIP_BES3601)
 #  include <arch/chip/bes3601_gpio.h>
+#elif defined(CONFIG_ARCH_CHIP_BES3601P)
+#  include <arch/chip/bes3601p_gpio.h>
 #elif defined(CONFIG_ARCH_CHIP_BES1502X)
 #  include <arch/chip/bes1502x_gpio.h>
 #elif defined(CONFIG_ARCH_CHIP_BES1502P)
