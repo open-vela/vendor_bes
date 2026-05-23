@@ -1,0 +1,190 @@
+/****************************************************************************
+ * vendor/bes/boards/best1700_ep/src/etc/init.d/rcS.ap
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+set +e
+/*************************
+pmconfig stay normal
+pmconfig stay normal 1
+**************************/
+
+echo "sysinit start"
+
+#ifndef CONFIG_GPT_PARTITION
+#if defined(CONFIG_MTD)
+mount -t littlefs -o autoformat /dev/data /data
+#endif
+
+#if defined(CONFIG_BES_MTDSDMMC)
+  mount -t fatfs -o autoformat /dev/mmcsd0 /sdcard
+  #if defined(CONFIG_RAMLOG_SYSLOG)
+    rm /emmc/lastword
+    dmesg > /emmc/lastword
+  #endif
+#endif
+
+#if defined(CONFIG_BES_EMMC_DEV) || defined(CONFIG_BES_EMMC)
+  mount -t fatfs -o autoformat /dev/mmcsd0 /emmc
+  #if defined(CONFIG_RAMLOG_SYSLOG)
+    rm /emmc/lastword
+    dmesg > /emmc/lastword
+  #endif
+#endif
+
+#else
+
+#if defined(CONFIG_BES_MTDSDMMC)
+  #if defined(CONFIG_BOARD_COREDUMP_BLKDEV)
+    mount -t fatfs -o autoformat /dev/mmcsd0fs /sdcard
+    coredump -s /emmc/coredump -m 10
+  #else
+    mount -t fatfs -o autoformat /dev/mmcsd0 /sdcard
+  #endif
+
+  #if defined(CONFIG_RAMLOG_SYSLOG)
+    rm /emmc/lastword
+    dmesg > /emmc/lastword
+  #endif
+#endif
+
+#if defined(CONFIG_BES_EMMC_DEV) || defined(CONFIG_BES_EMMC)
+  #if defined(CONFIG_BOARD_COREDUMP_BLKDEV)
+    mount -t fatfs -o autoformat /dev/mmcsd0fs /emmc
+    coredump -s /emmc/coredump -m 10
+  #else
+    mount -t fatfs -o autoformat /dev/mmcsd0 /emmc
+  #endif
+
+  #if defined(CONFIG_RAMLOG_SYSLOG)
+    rm /emmc/lastword
+    dmesg > /emmc/lastword
+  #endif
+#endif
+
+mkdir /vendor
+mount -t romfs /dev/vendor /vendor
+if [ $? -ne 0 ]; then
+  mkdir /vendor
+fi
+
+mkdir /resource/system
+mount -t romfs /dev/system /resource/system
+if [ $? -ne 0 ]; then
+  mkdir /resource/system
+fi
+
+mkdir /resource/app
+mount -t romfs /dev/app /resource/app
+if [ $? -ne 0 ]; then
+  mkdir /resource/app
+fi
+
+mkdir /resource/misc
+mount -t romfs /dev/misc /resource/misc
+if [ $? -ne 0 ]; then
+  mkdir /resource/misc
+fi
+
+mkdir /i18n
+mount -t romfs /dev/i18n /i18n
+if [ $? -ne 0 ]; then
+  mkdir /i18n
+fi
+
+mkdir /font
+mount -t romfs /dev/font /font
+if [ $? -ne 0 ]; then
+  mkdir /font
+fi
+
+mkdir /watchface
+mount -t romfs /dev/watchface /watchface
+if [ $? -ne 0 ]; then
+  mkdir /watchface
+fi
+
+mkdir /data
+mount -t fatfs -o autoformat /dev/data /data
+set errcode $?
+if [ $errcode -ne 0 ]
+then
+    echo "/dev/data mount failed, errcode is" $errcode
+fi
+
+mount -t fatfs -o autoformat /dev/coredump /log
+#endif
+
+#ifdef CONFIG_USBMTP_COMPOSITE
+mtp_responder &
+#endif
+
+#ifdef CONFIG_LOG_SERVICE
+offline_log start &
+#endif
+
+#ifdef CONFIG_MEDIA_SERVER
+mediad &
+#else
+
+#ifdef CONFIG_SMF_CONSOLE
+smf open &
+#endif
+
+#endif
+
+echo "rptun start"
+
+#ifdef XXXXXXXXXXXXXXXXXXXXXXXX
+#ifdef CONFIG_BES_RPTUN_AP2SENS_MASTER
+rptun start /dev/rptun/sensor
+#endif
+#ifdef CONFIG_BES_RPTUN_AP2BTH_MASTER
+/* Temporary isolation: keep BTH off while validating AP display bring-up. */
+/* rptun start /dev/rptun/bth */
+#endif
+#ifdef CONFIG_BES_RPTUN_AP2CP_MASTER
+rptun start /dev/rptun/cp
+#endif
+#endif
+
+#ifdef CONFIG_BES_RPTUN_AP2BTH_MASTER
+/* Temporary isolation: keep BTH off while validating AP display bring-up. */
+/* rptun start /dev/rptun/bth */
+#endif
+#ifdef CONFIG_BES_RPTUN_AP2DSP_MASTER
+rptun start /dev/rptun/audio
+#endif
+#ifdef CONFIG_BES_RPTUN_AP2APC1_MASTER
+rptun start /dev/rptun/apc1
+#endif
+
+mount -t procfs /mnt/ap
+#ifdef CONFIG_FS_RPMSGFS
+#ifndef CONFIG_ARCH_BOARD_CUSTOM_BES1700_EVB
+mount -t rpmsgfs -o cpu=audio,fs=/proc /mnt/audio
+/* mount -t rpmsgfs -o cpu=apc1,fs=/proc /mnt/apc1 */
+mount -t rpmsgfs -o cpu=sensor,fs=/proc /mnt/sensor
+/* mount -t rpmsgfs -o cpu=bth,fs=/misc /misc */
+#endif
+#endif
+
+echo "kvdbd start"
+
+#ifdef CONFIG_KVDB_SERVER
+kvdbd &
+#endif /* CONFIG_KVDB_SERVER */

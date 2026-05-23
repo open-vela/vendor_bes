@@ -1,0 +1,23 @@
+ExclusiveCriterion AudioMode        : normal phone ringtone
+InclusiveCriterion UsingDevices     : mic mic1 mic2 mic3 sco = mic
+InclusiveCriterion AvailableDevices : a2dp sco spk1 spk2
+NumericalCriterion HFPSampleRate    : 8000 16000 = 8000
+InclusiveCriterion ActiveStreams    : Ring0 Music0 Music1 Media0 Alarm0 Enforced0 cap movie picture
+ExclusiveCriterion Ring Info Notify Health : amovie_async@Ring
+ExclusiveCriterion Music Record            : amovie_async@Music
+ExclusiveCriterion Sport                   : amovie_async@Media
+ExclusiveCriterion Alarm                   : amovie_async@Alarm
+ExclusiveCriterion Enforced                : amovie_async@Enforced
+ExclusiveCriterion Video                   : movie_async@Video
+ExclusiveCriterion VideoSink               : moviesink_async
+ExclusiveCriterion AudioSink               : amoviesink_async
+ExclusiveCriterion PictureSink             : vmoviesink_async
+ExclusiveCriterion BT                      : null
+ExclusiveCriterion persist.media.MuteMode    MuteMode                                        : off on = off
+NumericalCriterion persist.media.SCOVolume   SCOVolume                                       : [0,15] = 8
+NumericalCriterion persist.media.TTSVolume  TTSVolume SportVolume                            : [0,10] = 5
+NumericalCriterion persist.media.RingVolume  RingVolume NotifyVolume HealthVolume InfoVolume : [0,10] = 5
+NumericalCriterion persist.media.MediaVolume MediaVolume                                     : [0,15] = 8
+NumericalCriterion persist.media.AlarmVolume AlarmVolume                                     : [0,10] = 5
+NumericalCriterion persist.media.MusicVolume MusicVolume                                     : [0,10] = 5
+NumericalCriterion persist.media.RecordVolume RecordVolume                                   : [0,10] = 5

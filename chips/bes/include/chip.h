@@ -41,15 +41,32 @@
  ************************************************************************************/
 
 #include <nuttx/config.h>
+#include <arch/chip/irq.h>
 
 #ifndef __ASSEMBLY__
 typedef long long __s64;
 typedef unsigned char __u8;
+extern unsigned int __boot_data_sram_start__[];
+extern unsigned int __boot_bss_sram_end__[];
+extern unsigned int __sram_data_start__[];
+extern unsigned int __sram_bss_end__[];
+extern unsigned int __data_start__[];
+extern unsigned int __StackLimit[];
+#ifndef CONFIG_BOARD_MEMORY_RANGE
+#define CONFIG_BOARD_MEMORY_RANGE {__boot_data_sram_start__,__boot_bss_sram_end__,0x6}, \
+                                  {__sram_data_start__,__sram_bss_end__,0x6}, \
+                                  {__data_start__,__StackLimit,0x6}, \
+                                  {0,0,0}
+#endif
 #endif
 
 /************************************************************************************
  * Pre-processor Definitions
  ************************************************************************************/
+
+#define ARMV6M_PERIPHERAL_INTERRUPTS (NR_IRQS-16)
+#define ARMV7M_PERIPHERAL_INTERRUPTS (NR_IRQS-16)
+#define ARMV8M_PERIPHERAL_INTERRUPTS (NR_IRQS-16)
 
 /* NVIC priority levels *************************************************************/
 
@@ -103,5 +120,34 @@ typedef unsigned char __u8;
 /************************************************************************************
  * Public Functions
  ************************************************************************************/
+#ifdef __ASSEMBLY__
+
+/****************************************************************************
+ * Name: setirqstack
+ *
+ * Description:
+ *   Set the current stack pointer to the  -"top" of the IRQ interrupt
+ *   stack for the current CPU.
+ *
+ ****************************************************************************/
+
+#if defined(CONFIG_SMP) && CONFIG_ARCH_INTERRUPTSTACK > 7
+  .macro  setintstack, tmp1, tmp2
+  ldr  \tmp2, =SCB_ID_ADR
+  ldr \tmp1, [\tmp2]
+  and  \tmp1, \tmp1, #3          /* Bits 0-1=CPU ID */
+  ldr  \tmp2, =g_cpu_intstack_top    /* tmp2=Array of IRQ stack pointers */
+  lsls \tmp1, \tmp1, #2          /* tmp1=Array byte offset */
+  add  \tmp2, \tmp2, \tmp1       /* tmp2=Offset address into array */
+  ldr  \tmp1, [\tmp2, #0]        /* tmp1=Address in stack allocation */
+  mov     sp, \tmp1                  /* Instantiate the aligned stack */
+  sub  \tmp2, \tmp1, #CONFIG_ARCH_INTERRUPTSTACK       /* Reserve signal context */
+  bic  \tmp2, \tmp2, #7              /* Get the stack pointer with 8-byte alignment */
+#ifdef CONFIG_ARMV8M_STACKCHECK_HARDWARE
+  msr     msplim, \tmp2
+#endif
+  .endm
+#endif
+#endif
 
 #endif /* __ARCH_ARM_INCLUDE_BES_CHIP_H */
