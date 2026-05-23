@@ -1,0 +1,204 @@
+#
+#   Model Select
+#
+choice
+prompt "choice custom board (model)"
+default ARCH_BOARD_CUSTOM_BES1700_EVB
+
+config ARCH_BOARD_CUSTOM_BES1700_EVB
+	bool "Select board bes1700 evb from BES"
+
+endchoice
+
+config BES1700_ZE7_EVB
+    bool "best1700 ze7 evb"
+    default n
+
+#
+#   Board Select
+#
+choice
+prompt "choice product board"
+
+config BES1700_AP
+	select BES_CORE_AP
+    select BES_AUDIO_CODEC_PLAYBACK
+    select BES_AUDIO_CODEC_CAPTURE
+    select BES_AUDIO_BTPCM_PLAYBACK
+    select BES_AUDIO_BTPCM_CAPTURE
+    select BES_AUDIO_I2S0_MASTER_PLAYBACK
+    select BES_AUDIO_I2S0_MASTER_CAPTURE
+    select BES_AUDIO_I2S1_MASTER_PLAYBACK
+    select BES_AUDIO_I2S1_MASTER_CAPTURE
+	bool "best1700 AP"
+
+config BES1700_AUDIO
+	select BES_CORE_AUDIO
+    select BES_AUDIO_CODEC_PLAYBACK
+    select BES_AUDIO_CODEC_CAPTURE
+    select BES_AUDIO_BTPCM_PLAYBACK
+    select BES_AUDIO_BTPCM_CAPTURE
+    select BES_AUDIO_I2S0_MASTER_PLAYBACK
+    select BES_AUDIO_I2S0_MASTER_CAPTURE
+    select BES_AUDIO_I2S1_MASTER_PLAYBACK
+    select BES_AUDIO_I2S1_MASTER_CAPTURE
+	bool "best1700 AUDIO"
+
+config BES1700_CP
+	select BES_CORE_CP
+	select DVFS_DUMMY_SET
+	bool "best1700 CP"
+
+config BES1700_OTA
+	select BES_CORE_OTA
+	bool "best1700 OTA"
+
+config BES1700_BTH
+	select BES_CORE_BTH
+	bool "best1700 BTH"
+
+config BES1700_BTHCP
+	select BES_CORE_BTHCP
+	select DVFS_DUMMY_SET
+	bool "best1700 BTHCP"
+
+config BES1700_WIFI
+	bool "best1700 WIFI"
+
+config BES1700_TEE
+	select BES_CORE_TEE
+	bool "best1700 TEE"
+
+config BES1700_BL
+	select BES_CORE_BL
+	bool "best1700 bootloader"
+
+config BES1700_BL2
+	select BES_CORE_BL2
+	bool "best1700 bl2"
+
+config BES1700_APC1
+	select BES_CORE_APC1
+	select DVFS_DUMMY_SET
+	bool "best1700 APC1"
+
+endchoice
+
+config BES1700_AP_LIBRARY_MODE
+    bool "best1700 AP use prebuilt BSP libraries"
+    default n
+    depends on BES1700_AP
+    help
+      Use the published prebuilt AP BSP archives instead of compiling the
+      best1700 board/chip BSP sources from this tree. This is intended for
+      validating and consuming the 1700 AP library delivery flow.
+
+config BOARD_BATTY_VOLTAGE_LIMIT
+    int "Board battery voltage limit(mV)"
+    default 3600
+
+config BOARD_HAVE_BATTY
+    bool "Board have batty or not"
+    default n
+
+if RPTUN
+
+config BES_RPTUN_AP2APC1
+    bool "BES RPTUN AP <-> APC1 support"
+    default n
+
+config BES_RPTUN_AP2APC1_MASTER
+    bool "BES RPTUN AP <-> APC1 master"
+    default n
+
+config BES_RPTUN_APC12BTH
+    bool "BES RPTUN APC1 <-> BTH support"
+    default n
+
+config BES_RPTUN_APC12BTH_MASTER
+    bool "BES RPTUN APC1 <-> BTH master"
+    default n
+
+config BES_RPTUN_APC12DSP
+    bool "BES RPTUN APC1 <-> DSP support"
+    default n
+
+config BES_RPTUN_APC12DSP_MASTER
+    bool "BES RPTUN APC1 <-> DSP master"
+    default n
+
+config BES_RPTUN_BTH2BTHCP
+    bool "BES RPTUN BTH <-> BTHCP support"
+    default n
+
+config BES_RPTUN_BTH2BTHCP_MASTER
+    bool "BES RPTUN BTH <-> BTHCP master"
+    default n
+
+if BES_RPTUN_AP2APC1_MASTER
+config APC1_SUBSYS_BIN_SIZE
+        hex "APC1 SUBSYS BIN SIZE"
+        default 0x100000
+
+config APC1_SUBSYS_BIN_ADDRESS
+        hex "APC1 SUBSYS BIN ADDRESS"
+        default 0x30a00000
+endif
+
+config BES_APC1_BIN_FLASH_BOOT
+       bool "Enable apc1 boot in flash"
+       default n
+       depends on BES1700_APC1
+
+if BES_APC1_BIN_FLASH_BOOT
+config BES_APC1_BIN_FLASH_OFFSET
+       hex "Set apc1 boot offset in flash"
+       default 0
+endif
+
+config BES_BTHCP_BIN_FLASH_BOOT
+       bool "Enable bthcp boot in flash"
+       default n
+
+if BES_BTHCP_BIN_FLASH_BOOT
+config BES_BTHCP_BIN_FLASH_OFFSET
+       hex "Set bthcp boot offset in flash"
+    default 0
+	depends on BES_RPTUN_BTH2BTHCP
+endif
+
+
+if BES_RPTUN_AP2BTH
+    choice
+        prompt "choice bth boot environment"
+        default BTH_BIN_FLASH_BOOT
+
+        config BTH_BIN_RAM_BOOT
+            bool "Enable bth boot in ram"
+
+        config BTH_BIN_FLASH_BOOT
+            bool "Enable bth boot in flash"
+
+        config BTH_BIN_FS_LOAD
+            bool "Enable bth load from file system"
+    endchoice
+
+    config BTH_SUBSYS_BIN_ADDR
+        hex "BTH SUBSYS BIN ADDRESS"
+        depends on BTH_BIN_RAM_BOOT
+        default 0x30500000
+
+    config BTH_SUBSYS_BIN_SIZE
+        hex "BTH SUBSYS BIN SIZE"
+        depends on BTH_BIN_RAM_BOOT
+        default 0x100000
+
+    config BTH_SUBSYS_BIN_PATH
+        string "BTH SUSBYS BIN PATH"
+        depends on BTH_BIN_FS_LOAD
+        default "/emmc/nuttx_bth.bin"
+endif
+
+endif
+
+source "../vendor/bes/boards/common/Kconfig"
