@@ -1,0 +1,136 @@
+KBUILD_CPPFLAGS += -DCHIP_BEST1700
+ifeq ($(BES_MINIMAL_BRINGUP),1)
+KBUILD_CPPFLAGS += -DBES_MINIMAL_BRINGUP
+endif
+ifeq ($(M55C0_MAIN_RAM_USE_SYS_RAM),1)
+KBUILD_CPPFLAGS += -DM55C0_MAIN_RAM_USE_SYS_RAM
+endif
+ifeq ($(M55C1_MAIN_RAM_USE_SYS_RAM),1)
+KBUILD_CPPFLAGS += -DM55C1_MAIN_RAM_USE_SYS_RAM
+endif
+ifeq ($(BTH_AS_MAIN_MCU),1)
+KBUILD_CPPFLAGS += -DBTH_AS_MAIN_MCU
+ifeq ($(BTH_USE_SYS_FLASH),1)
+KBUILD_CPPFLAGS += -DBTH_USE_SYS_FLASH
+ifneq ($(FORCE_FLASH1_SLEEP),1)
+BTH_USE_SYS_PERIPH := 1
+endif
+endif
+else # !BTH_AS_MAIN_MCU
+ifeq ($(SYS_USE_BTH_FLASH),1)
+KBUILD_CPPFLAGS += -DSYS_USE_BTH_FLASH
+endif
+endif # !BTH_AS_MAIN_MCU
+ifeq ($(BTH_USE_SYS_PERIPH),1)
+KBUILD_CPPFLAGS += -DBTH_USE_SYS_PERIPH
+endif
+ifeq ($(CHIP_SUBSYS),bth)
+SUBSYS_VALID := 1
+KBUILD_CPPFLAGS += -DCHIP_SUBSYS_BTH
+CPU := m33
+LIBC_ROM := 0
+CRC32_ROM := 0
+SHA256_ROM := 0
+export NO_MPU_DEFAULT_MAP ?= 1
+ifeq ($(BTH_AS_MAIN_MCU),1)
+# To switch sp and/or cpu
+export BOOT_LOADER_ENTRY_HOOK := 1
+endif
+ifneq ($(filter 1 2,$(CHIP_DMA_CFG_IDX)),)
+ifneq ($(BTH_USE_SYS_PERIPH),1)
+$(error BTH_USE_SYS_PERIPH must be 1 when CHIP_DMA_CFG_IDX=1 or 2)
+endif
+endif
+ifeq ($(BTH_AS_MAIN_MCU)-$(BTH_USE_SYS_PERIPH),1-1)
+export CHIP_HAS_USB := 1
+export CHIP_HAS_USBPHY := 1
+export CHIP_HAS_I2S_TDM_TRIGGER := 1
+endif
+else # CHIP_SUBSYS != bth
+CPU := m55
+ifneq ($(CHIP_ROLE_CP),1)
+ifeq ($(BES_MINIMAL_BRINGUP),1)
+export CP_AS_SUBSYS := 0
+else
+export CP_AS_SUBSYS := 1
+endif
+ifeq ($(CORE_SLEEP_POWER_DOWN)-$(CPU_PD_SUBSYS_PU),1-1)
+ifneq ($(BTH_USE_SYS_PERIPH),1)
+export POWER_DOWN_VIA_DEEP_SLEEP := 1
+endif
+endif
+endif # !CHIP_ROLE_CP
+ifneq ($(BTH_AS_MAIN_MCU),1)
+# To switch sp
+export BOOT_LOADER_ENTRY_HOOK := 1
+endif
+export CHIP_HAS_USB := 1
+export CHIP_HAS_USBPHY := 1
+export CHIP_HAS_PSRAM := 1
+ifneq ($(filter 1 2,$(CHIP_DMA_CFG_IDX)),)
+ifneq ($(BTH_USE_SYS_PERIPH),1)
+$(error BTH_USE_SYS_PERIPH must be 1 when CHIP_DMA_CFG_IDX=1 or 2)
+endif
+endif
+export CHIP_HAS_I2S_TDM_TRIGGER := 1
+ifeq ($(ROM_BUILD),1)
+export BOOT_NANDFLASH_SUPPORT ?= 1
+# Since version G
+export BOOT_EMMC_SUPPORT ?= 1
+export CHIP_HAS_EMMC ?= 1
+export OSC_26M_X4_AUD2BB ?= 1
+endif
+endif # CHIP_SUBSYS != bth
+export LIBC_OVERRIDE ?= 1
+CHIP_HAS_DAC_FIFO := 3
+CHIP_HAS_ADC_FIFO := 2
+ifeq ($(BES_MINIMAL_BRINGUP),1)
+export CHIP_HAS_CP := 0
+else
+export CHIP_HAS_CP := 1
+endif
+export CHIP_HAS_FPU := 1
+export CHIP_HAS_PSC := 1
+export CHIP_HAS_EXT_PMU := 1
+export CHIP_HAS_HIFI4 := 1
+ifeq ($(GRAPH_MODULE),1)
+export CHIP_HAS_DMA2D := 1
+export CHIP_HAS_GPU := 1
+export CHIP_HAS_LCDC := 1
+export CHIP_HAS_DSI := 1
+export CHIP_HAS_JPEG := 1
+export CHIP_HAS_PNG := 1
+export CHIP_HAS_GMMU := 1
+endif
+export CHIP_CACHE_VER := 5
+export CHIP_FLASH_CTRL_VER := 7
+export NANDFLASH_SUPPORT ?= 1
+export FLASH_LOCK_MEM_READ := 1
+export CHIP_PSRAM_CTRL_VER := 6
+export CHIP_SPI_VER := 7
+export CHIP_INTERSYS_VER := 2
+export CHIP_GPIO_VER := 2
+export PSC_GPIO_IRQ_CTRL := 1
+export CHIP_RAM_BOOT := 1
+export CHIP_HAS_EC_CODEC_REF := 1
+export CHIP_HAS_SCO_DMA_SNAPSHOT := 1
+export CHIP_ROM_UTILS_VER := 2
+export CHIP_HAS_SECURE_BOOT := 1
+export CHIP_HAS_ANC_HW_GAIN_SMOOTHING := 1
+export CHIP_BT_CLK_UNIT_IN_HSLOT := 1
+export CHIP_HAS_MULTI_DMA_TC := 1
+export CHIP_HAS_SUPPORT_ME_MEDIATOR := 1
+export CHIP_HAS_WIFI ?= 1
+export CHIP_HAS_SHANHAI := 1
+
+ifeq ($(SEC_ENG_OTP_ENABLE),1)
+LDS_CPPFLAGS += -DSEC_ENG_OTP_ENABLE
+endif
+
+ifeq ($(ZE7_EVB),1)
+KBUILD_CPPFLAGS += -DZE7_EVB
+endif
+
+export PMU_LOW_POWER_CLOCK ?= 1
+export PMU_FORCE_LP_MODE ?= 1
+export SPLIT_CORE_M_CORE_L ?= 1
