@@ -1,0 +1,143 @@
+domain: SpeakerDomain
+	conf: sco
+		ALL
+			AvailableDevices Includes sco
+			UsingDevices     Includes sco
+		FFmpegCommand = pcm0p,set_parameter,set_scenario=sco;MixSpeaker,weights,0 0 0 0 0 1;
+	conf: music
+		ALL
+		FFmpegCommand = pcm0p,set_parameter,set_scenario=music;MixSpeaker,weights,1 1 1 1 1 0;
+
+domain: SCODomain
+	conf: phone
+		ALL
+			AvailableDevices Includes sco
+			AudioMode        Is       phone
+		FFmpegCommand = SelSCO,start,0 %HFPSampleRate%;
+	conf: normal
+		ALL
+			AvailableDevices Includes sco
+			AudioMode        Is       normal
+		FFmpegCommand = SelSCO,start,1 %HFPSampleRate%;
+	conf: disable
+		ALL
+		FFmpegCommand = SelSCO,close;
+
+domain: PlayDomain
+	conf: a2dp
+		AvailableDevices Includes a2dp
+		FFmpegCommand = SelPlay,a2dp,-1 0;
+	conf: speaker1
+		AvailableDevices Includes spk1
+		FFmpegCommand = SelPlay,spk1,0;
+	conf: speaker2
+		AvailableDevices Includes spk2
+		FFmpegCommand = SelPlay,spk2,0;
+	conf: speaker
+		ALL
+		FFmpegCommand = SelPlay,spk0,0;
+
+domain: AlarmDomain
+	conf: both
+		AvailableDevices Includes a2dp
+		FFmpegCommand = SelAlarm,a2dp,0 0;
+	conf: speaker
+		ALL
+		FFmpegCommand = SelAlarm,spk0,0;
+
+domain: MicDomain
+	conf: phone
+		ALL
+			UsingDevices     Includes mic
+			AvailableDevices Includes sco
+			UsingDevices     Includes sco
+			AudioMode        Is       phone
+		FFmpegCommand = SelCap,mic0,0;
+	conf: capture1
+		UsingDevices Includes mic1
+		FFmpegCommand = SelCap,mic1,0;
+	conf: capture2
+		UsingDevices Includes mic2
+		FFmpegCommand = SelCap,mic2,0;
+	conf: capture3
+		UsingDevices Includes mic3
+		FFmpegCommand = SelCap,mic3,0;
+	conf: capture
+		UsingDevices Includes mic
+		FFmpegCommand = SelCap,mic0,0;
+	conf: phone-temp-off
+		ALL
+			AvailableDevices Includes sco
+			UsingDevices     Includes sco
+			AudioMode        Is       phone
+		FFmpegCommand = pcm0c,pause,temp;SelCap,map,-1 -1 0;
+	conf: capture-temp-off
+		ActiveStreams Includes cap
+		FFmpegCommand = pcm0c,pause,temp;SelCap,map,0 0 -1;
+	conf: off
+		ALL
+		FFmpegCommand = pcm0c,pause,;
+
+domain: IncallVolumeDomain
+	conf: X
+		AudioMode Is phone
+		FFmpegCommand = ;
+	conf: index-0
+		SCOVolume In 0
+		FFmpegCommand = VolSCO,volume,0;
+	conf: index-%SCOVolume
+		SCOVolume In [1,15]
+		FFmpegCommand = VolSCO,volume,%SCOVolume%;
+
+domain: TTSVolumeDomain
+	conf: X
+		AudioMode Is phone
+		FFmpegCommand = ;
+	conf: index-0
+		TTSVolume In 0
+		FFmpegCommand = VolTTS,volume,0;
+	conf: index-%TTSVolume
+		TTSVolume In [1,10]
+		FFmpegCommand = VolTTS,volume,%TTSVolume%;
+
+domain: RingVolumeDomain
+	conf: X
+		ANY
+			MuteMode   Is on
+			RingVolume In 0
+		FFmpegCommand = VolRing,volume,0;
+	conf: index-%RingVolume
+		RingVolume In [1,10]
+		FFmpegCommand = VolRing,volume,%RingVolume%;
+
+domain: MediaVolumeDomain
+	conf: X
+		MediaVolume In 0
+		FFmpegCommand = VolMedia,volume,0;
+	conf: index-%MediaVolume
+		MediaVolume In [1,15]
+		FFmpegCommand = VolMedia,volume,%MediaVolume%;
+
+domain: AlarmVolumeDomain
+	conf: X
+		AlarmVolume In 0
+		FFmpegCommand = VolAlarm,volume,0;
+	conf: index-%AlarmVolume
+		AlarmVolume In [1,10]
+		FFmpegCommand = VolAlarm,volume,%AlarmVolume%;
+
+domain: MusicVolumeDomain
+	conf: X
+		MusicVolume In 0
+		FFmpegCommand = VolMusic,volume,0;
+	conf: index-%MusicVolume
+		MusicVolume In [1,10]
+		FFmpegCommand = VolMusic,volume,%MusicVolume%;
+
+domain: RecordVolumeDomain
+	conf: X
+		RecordVolume In 0
+		FFmpegCommand = VolRecord,volume,0;
+	conf: index-%RecordVolume
+		RecordVolume In [1,10]
+		FFmpegCommand = VolRecord,volume,%RecordVolume%;

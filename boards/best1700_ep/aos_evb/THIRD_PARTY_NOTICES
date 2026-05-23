@@ -1,0 +1,43 @@
+best1700 BSP Library Release - THIRD_PARTY_NOTICES
+
+This release payload includes prebuilt static libraries for best1700 AP/APC1.
+Based on the current archive audit, actual bundled third-party code is detected
+in libnx_bestbsp_ap.a and libnx_bestbsp_apc1.a from the components listed
+below. Other third-party project names may appear in embedded repo metadata,
+but those metadata strings are not treated as evidence of bundled runtime code
+for attribution.
+
+1. OpenSSL 1.1.1i
+   Source subtree:
+     vendor/bes/framework/services/net/openssl-1.1.1i
+   License:
+     Apache License 2.0
+   Notice:
+     This product includes software from the OpenSSL Project, distributed under
+     the Apache License, Version 2.0. You may obtain a copy of the license at:
+       https://www.apache.org/licenses/LICENSE-2.0
+
+2. zlib 1.2.12
+   Source subtree:
+     apps/system/zlib/zlib
+   License:
+     zlib License
+   License text:
+     Copyright (C) 1995-2022 Jean-loup Gailly and Mark Adler
+
+     This software is provided 'as-is', without any express or implied
+     warranty. In no event will the authors be held liable for any damages
+     arising from the use of this software.
+
+     Permission is granted to anyone to use this software for any purpose,
+     including commercial applications, and to alter it and redistribute it
+     freely, subject to the following restrictions:
+
+     1. The origin of this software must not be misrepresented; you must not
+        claim that you wrote the original software. If you use this software
+        in a product, an acknowledgment in the product documentation would be
+        appreciated but is not required.
+     2. Altered source versions must be plainly marked as such, and must not
+        be misrepresented as being the original software.
+     3. This notice may not be removed or altered from any source
+        distribution.
