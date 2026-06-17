@@ -1,5 +1,7 @@
 # BEST1700 AOS EVB
 
+[ English | [简体中文](README_zh-cn.md) ]
+
 This board package provides the open-vela board support files for the
 BEST1700 AOS EVB AP/APC1 library release.
 
