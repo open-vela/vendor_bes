@@ -18,12 +18,6 @@
 #
 # ##############################################################################
 
-set(SRCS
-    ap.c
-    apc1.c)
-
-target_sources(board PRIVATE ${SRCS})
-
 # This release branch is library-mode-only apart from the released AP/APC1
 # board entry wrappers kept in source form.
 
