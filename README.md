@@ -16,7 +16,8 @@ vendor/bes/
 │   ├── bes/        # BES chip series (Cortex-M based, e.g., BES2600)
 │   └── besa7/      # BES A7 chip series (Cortex-A based, not covered here)
 ├── boards/          # Board-specific configurations
-│   └── best2003_ep/ # BEST2003 Evaluation Platform (for BES2600 chip)
+│   ├── best2003_ep/ # BEST2003 Evaluation Platform (for BES2600 chip)
+│   └── best1700_ep/ # BEST1700 AOS EVB Platform (for BEST1700 chip)
 └── drivers/         # BES-specific device drivers
 ```
 
@@ -108,6 +109,20 @@ The development board supports multiple BES2600 series chip variants, selected v
 - **Debug Port**: Debug interface
 
 **Hardware Documentation**: [BES2600WM Main Board Hardware User Guide V1.0 (PDF)](https://www.fortune-co.com/Public/Uploads/ueditor/upload/file/20250801/1754019693187058.pdf)
+
+### BEST1700 AOS EVB
+
+**BEST1700 AOS EVB** is an evaluation board based on the BEST1700 chip,
+providing AP/APC1 board support in library mode. Enabled features include:
+
+- **Wi-Fi**: wireless connectivity
+- **eMMC**: storage
+- **Display**: RM69330 DSI display
+- **Touch**: TMA525C touch panel
+- **Console**: USB serial console
+
+See [`boards/best1700_ep/aos_evb/README.md`](boards/best1700_ep/aos_evb/README.md)
+for board-level details.
 
 ## Core Features
 

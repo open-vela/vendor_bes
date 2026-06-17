@@ -16,7 +16,8 @@ vendor/bes/
 │   ├── bes/        # BES 芯片系列（基于 Cortex-M，如 BES2600）
 │   └── besa7/      # BES A7 芯片系列（基于 Cortex-A，暂不涉及）
 ├── boards/          # 开发板特定配置
-│   └── best2003_ep/ # BEST2003 评估平台（对应 BES2600 芯片）
+│   ├── best2003_ep/ # BEST2003 评估平台（对应 BES2600 芯片）
+│   └── best1700_ep/ # BEST1700 AOS EVB 评估平台（对应 BEST1700 芯片）
 └── drivers/         # BES 专用设备驱动
 ```
 
@@ -108,6 +109,18 @@ BES2600WM 官方评估板，提供完整的开发和评估环境。
 - **Debug 口**：调试接口
 
 **硬件文档**：[BES2600WM 主板硬件用户指南 V1.0 (PDF)](https://www.fortune-co.com/Public/Uploads/ueditor/upload/file/20250801/1754019693187058.pdf)
+
+### BEST1700 AOS EVB
+
+**BEST1700 AOS EVB** 是基于 BEST1700 芯片的评估开发板，以库模式（library mode）形式提供 AP/APC1 板级支持。已启用的功能包括：
+
+- **Wi-Fi**：无线连接
+- **eMMC**：存储
+- **显示**：RM69330 DSI 显示屏
+- **触摸**：TMA525C 触摸面板
+- **控制台**：USB 串口控制台
+
+板级详细说明见 [`boards/best1700_ep/aos_evb/README_zh-cn.md`](boards/best1700_ep/aos_evb/README_zh-cn.md)。
 
 ## 核心特性
 
