@@ -5,6 +5,10 @@
 This board package provides the open-vela board support files for the
 BEST1700 AOS EVB AP/APC1 library release.
 
+> The `best1700` name is the platform/SDK code name used throughout the code,
+> configs and prebuilt libraries. The actual silicon mounted on this EVB is the
+> **BES2800BP** (Cortex-M55 + HiFi4 DSP).
+
 ## Supported Features
 
 - Wi-Fi
