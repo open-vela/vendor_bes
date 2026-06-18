@@ -4,6 +4,8 @@
 
 本开发板软件包提供 BEST1700 AOS EVB（AP/APC1 库发布版）的 open-vela 板级支持文件。
 
+> `best1700` 是代码、配置及预编译库中统一使用的平台/SDK 代号；本开发板上实际搭载的芯片为 **BES2800BP**（Cortex-M55 + HiFi4 DSP）。
+
 ## 支持的功能
 
 - Wi-Fi

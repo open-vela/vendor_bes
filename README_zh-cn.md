@@ -17,7 +17,7 @@ vendor/bes/
 │   └── besa7/      # BES A7 芯片系列（基于 Cortex-A，暂不涉及）
 ├── boards/          # 开发板特定配置
 │   ├── best2003_ep/ # BEST2003 评估平台（对应 BES2600 芯片）
-│   └── best1700_ep/ # BEST1700 AOS EVB 评估平台（对应 BEST1700 芯片）
+│   └── best1700_ep/ # BEST1700 AOS EVB 评估平台（实际芯片 BES2800BP）
 └── drivers/         # BES 专用设备驱动
 ```
 
@@ -112,7 +112,7 @@ BES2600WM 官方评估板，提供完整的开发和评估环境。
 
 ### BEST1700 AOS EVB
 
-**BEST1700 AOS EVB** 是基于 BEST1700 芯片的评估开发板，以库模式（library mode）形式提供 AP/APC1 板级支持。已启用的功能包括：
+**BEST1700 AOS EVB** 是 BES 的评估开发板，以库模式（library mode）形式提供 AP/APC1 板级支持。其中 `best1700` 为代码与 SDK 中使用的平台代号，板上实际搭载的芯片为 **BES2800BP**（Cortex-M55 + HiFi4 DSP）。已启用的功能包括：
 
 - **Wi-Fi**：无线连接
 - **eMMC**：存储

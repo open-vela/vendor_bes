@@ -17,7 +17,7 @@ vendor/bes/
 │   └── besa7/      # BES A7 chip series (Cortex-A based, not covered here)
 ├── boards/          # Board-specific configurations
 │   ├── best2003_ep/ # BEST2003 Evaluation Platform (for BES2600 chip)
-│   └── best1700_ep/ # BEST1700 AOS EVB Platform (for BEST1700 chip)
+│   └── best1700_ep/ # BEST1700 AOS EVB Platform (silicon: BES2800BP)
 └── drivers/         # BES-specific device drivers
 ```
 
@@ -112,8 +112,10 @@ The development board supports multiple BES2600 series chip variants, selected v
 
 ### BEST1700 AOS EVB
 
-**BEST1700 AOS EVB** is an evaluation board based on the BEST1700 chip,
-providing AP/APC1 board support in library mode. Enabled features include:
+**BEST1700 AOS EVB** is a BES evaluation board providing AP/APC1 board support
+in library mode. Here `best1700` is the platform code name used in the code and
+SDK; the actual silicon on the board is the **BES2800BP** (Cortex-M55 + HiFi4
+DSP). Enabled features include:
 
 - **Wi-Fi**: wireless connectivity
 - **eMMC**: storage
