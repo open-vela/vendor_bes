@@ -1,0 +1,18 @@
+step1: create keys
+    openssl genrsa -out rsa_private_key.pem 3072
+    openssl rsa -in rsa_private_key.pem -pubout -out rsa_public_key.pem
+
+step2: generate otp bin
+    java -cp bcprov-jdk15on-152.jar: DumpPublicKey rsa_public_key.pem pub.bin > pub.txt
+    ./best_sign_v5_static --otp --sec-key --no-rom-key rsa_private_key.pem 0 0x1000 0x400 0x1000 0 pub.bin pub_otp.bin
+    cp ./prebuild/security/bes_sign_tool/pub_otp.bin cmake_out/***/***/out/
+
+step3: burn otp bin
+    dldtool.exe 11 programmer.bin --sec-file pub_otp.bin
+
+step4: defconfig add CONFIG_BES_SECURE_BOOT=y
+
+step5: sign user bin
+    ./prebuild/security/bes_sign_tool/best_sign_v5_static --otp ./prebuild/security/bes_sign_tool/rsa_private_key.pem cmake_out/***/***/out/nuttx_bl.bin
+    ./prebuild/security/bes_sign_tool/best_sign_v5_static --otp ./prebuild/security/bes_sign_tool/rsa_private_key.pem cmake_out/***/***/out/nuttx_ota.bin
+    ./prebuild/security/bes_sign_tool/best_sign_v5_static --otp ./prebuild/security/bes_sign_tool/rsa_private_key.pem cmake_out/***/***/out/nuttx_ap.bin

@@ -1,0 +1,256 @@
+#!/bin/bash
+EXPORT_LIB="$EXPORT_LIB
+`cat <<-EOF
+EOF
+`
+"
+EXPORT_FILE_DIR="$EXPORT_FILE_DIR
+`cat <<-EOF
+.gitignore
+Makefile
+Make.defs
+build.sh
+release.sh
+apps
+chips
+doc
+drivers
+prebuild
+boards/common
+framework/services/Makefile
+rtos/nuttx
+rtos/apps
+rtos/vendor/Make.defs
+rtos/vendor/Makefile
+rtos/vendor/bes
+rtos/external/freetype
+rtos/external/Make.defs
+rtos/external/Makefile
+rtos/prebuilts/kconfig-frontends
+rtos/prebuilts/gcc/linux/arm
+rtos/prebuilts/gcc/linux/arm64
+rtos/prebuilts/tools
+rtos/frameworks/TZ_framework
+rtos/frameworks/Make.defs
+rtos/frameworks/Makefile
+EOF
+`
+"
+
+EXCLUDE_FILE_DIR="$EXCLUDE_FILE_DIR
+`cat <<-EOF
+boards/common/src/bes_temp_*
+apps/vpm_demo
+apps/.git
+apps/brain_demo
+apps/magcal
+apps/mibtrf
+apps/mirftest
+prebuild/relsw_*
+rtos/apps/crypto/mbedtls/mbedtls/programs/test
+rtos/apps/crypto/mbedtls/mbedtls/tests/include/test
+rtos/apps/interpreters/wamr/wamr/core/iwasm/libraries/lib-socket/test
+rtos/apps/interpreters/wamr/wamr/core/iwasm/libraries/lib-wasi-threads/test
+rtos/apps/interpreters/wamr/wamr/core/iwasm/libraries/wasi-nn/test
+rtos/apps/netutils/cjson/cJSON/tests/unity/examples/example_1/test
+rtos/apps/netutils/cjson/cJSON/tests/unity/examples/example_2/test
+rtos/apps/netutils/cjson/cJSON/tests/unity/examples/example_3/test
+rtos/apps/netutils/cjson/cJSON/tests/unity/extras/fixture/test
+rtos/apps/netutils/cjson/cJSON/tests/unity/test
+rtos/nuttx/libs/libxx/libcxx/test
+rtos/nuttx/libs/libxx/libcxx/utils/libcxx/test
+rtos/nuttx/libs/libxx/libcxxabi/test
+rtos/nuttx/openamp/libmetal/test
+rtos/prebuilts/tools/python/dist-packages/pyelftools/test
+EOF
+`
+"
+
+set -e
+
+ECHO=/bin/echo
+
+if [ "x$BASH" = "x" ]; then
+	$ECHO -e "    Error: `basename $0` must be run in bash"
+	return 1 2>/dev/null || exit 1
+fi
+
+function is_sourced() {
+	#declare -p FUNCNAME
+	#[ "${FUNCNAME[@]: -1}" = "source" ]
+	[ "${FUNCNAME[1]}" = "source" ]
+}
+
+if [ ${BASH_VERSINFO[0]} -le 2 ]; then
+	if [ "$_" != "$0" ]; then
+		SCRIPT_SOURCED=1
+	fi
+else
+	if is_sourced; then
+		SCRIPT_SOURCED=1
+	fi
+fi
+
+if [ "x$SCRIPT_SOURCED" != "x1" ]; then
+	$ECHO -e "    Error: `basename $0` must be sourced in a script file"
+	return 1 2>/dev/null || exit 1
+fi
+
+if [ "x$EXPORT_LIB" = "x" ]; then
+	$ECHO -e "    Error: EXPORT_LIB is empty"
+	return 1 2>/dev/null || exit 1
+fi
+
+if [ "x$EXPORT_FILE_DIR" = "x" ]; then
+	$ECHO -e "    Error: EXPORT_FILE_DIR is empty"
+	return 1 2>/dev/null || exit 1
+fi
+
+USAGE="
+Usage:
+	`basename $0` <to_file> [ <version> [ <git-archive options> ] ]
+
+Description:
+	<to_file>	Output file name
+	<version>	<tree-ish> - Contents in the <tree-ish>
+			WORKING - Contents in working tree
+	<git-archive options>	Other options for git-archive
+
+Additional options (can be put out of order):
+	L=lib1,...	More library files (comma separated) to pack
+	F=file1,...	More files or directories (comma separated) to pack
+"
+
+ALL_OPTS=$TARGET_NAME"_"$DATE"_"$commitid".tar.gz"
+
+FILTERED_OPTS=
+for opt in $ALL_OPTS; do
+	case "$opt" in
+		L=*) eval $opt ;;
+		F=*) eval $opt ;;
+		*) FILTERED_OPTS="$FILTERED_OPTS $opt" ;;
+	esac
+done
+
+
+if [ "x$1" = "x" ]; then
+	VER=HEAD
+else
+	VER=$1
+	shift
+fi
+
+set -- $FILTERED_OPTS
+
+if [ "x$1" = "x" ]; then
+	$ECHO -e "$USAGE"
+	exit 1
+fi
+case "$1" in
+	*.tar.gz) DEST=$1 ;;
+	*) DEST=${1}.tar.gz ;;
+esac
+shift
+
+L=`$ECHO $L | sed 's/,/ /g'`
+F=`$ECHO $F | sed 's/,/ /g'`
+
+$ECHO -e "Packing source files ..."
+
+exclude_check=0
+if [ "x$EXCLUDE_FILE_DIR" != "x" ]; then
+	exclude_check=1
+fi
+EXCLUDE_MATCH=
+
+REAL_EXPORT_FILE_DIR=
+for f in $EXPORT_FILE_DIR $F; do
+	commented=0
+	case "$f" in
+		\#*) commented=1 ;;
+	esac
+	if [ "x$commented" = "x1" ]; then
+		$ECHO -en "    Skipping " && ($ECHO -e "$f" | sed 's/^#//')
+	else
+		excluded=0
+		if [ "x$exclude_check" = "x1" ]; then
+			# Disable pathname expansion
+			set -f
+			for e in $EXCLUDE_FILE_DIR; do
+				# Patten match (or using case statement for compatibility)
+				if [[ "x$f" == x$e ]]; then
+					excluded=1
+					EXCLUDE_MATCH="$EXCLUDE_MATCH $e"
+					break
+				fi
+			done
+			# Re-enable pathname expansion
+			set +f
+		fi
+		if [ "x$excluded" = "x1" ]; then
+			$ECHO -e "    Excluding $f"
+		elif [ -d $f ] || [ -f $f ]; then
+			REAL_EXPORT_FILE_DIR="$REAL_EXPORT_FILE_DIR $f"
+		else
+			$ECHO -e "    Warning: Missing $f"
+		fi
+	fi
+done
+
+if [ "x$REAL_EXPORT_FILE_DIR" = x ]; then
+	$ECHO -e "Error: No files or directories found"
+	exit 2
+fi
+
+if [ "x$exclude_check" = "x1" ]; then
+	# Disable pathname expansion
+	set -f
+	for e in $EXCLUDE_FILE_DIR; do
+		excluded=0
+		for m in $EXCLUDE_MATCH; do
+			if [ "x$e" = "x$m" ]; then
+				excluded=1
+				break
+			fi
+		done
+		if [ "x$excluded" != "x1" ]; then
+			$ECHO -e "    Warning: No file or directory to exclude: $e"
+		fi
+	done
+	# Re-enable pathname expansion
+	set +f
+fi
+
+ARCH_DEST=${DEST}_tar
+if [ "x$VER" = "xWORKING" ]; then
+	tar -cf $ARCH_DEST $REAL_EXPORT_FILE_DIR
+	tar -f $ARCH_DEST --delete $EXCLUDE_FILE_DIR
+else
+	git archive --format=tar "$@" -o $ARCH_DEST $VER $REAL_EXPORT_FILE_DIR
+fi
+
+$ECHO -e "Packing library files ..."
+
+REAL_EXPORT_LIB=
+for f in $EXPORT_LIB $L; do
+	commented=0
+	case "$f" in
+		\#*) commented=1 ;;
+	esac
+	if [ "x$commented" = "x1" ]; then
+		$ECHO -en "    Skipping " && ($ECHO -e "$f" | sed 's/^#//')
+	elif [ -d $f ] || [ -f $f ]; then
+		REAL_EXPORT_LIB="$REAL_EXPORT_LIB $f"
+	else
+		$ECHO -e "    Warning: Missing $f"
+	fi
+done
+
+if [ "x$REAL_EXPORT_LIB" != "x" ]; then
+	tar -rf $ARCH_DEST $REAL_EXPORT_LIB
+fi
+
+cat $ARCH_DEST | gzip -c > $DEST
+rm $ARCH_DEST
+
+$ECHO -e "Done."

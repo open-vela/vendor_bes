@@ -81,7 +81,10 @@ set(OUT_CMAKE ${NUTTX_BOARD_ABS_DIR}/board_cfg.cmake)
 # used to identify ENV params that need passing to bsp
 set(ENV{CONFIG_START} 1)
 
-set(BES_PREBUILD_DIR ${NUTTX_DIR}/../prebuild)
+set(BES_PREBUILD_DIR ${NUTTX_DIR}/../vendor/bes/prebuild)
+if(NOT EXISTS ${BES_PREBUILD_DIR}/mk2cmake.py)
+  set(BES_PREBUILD_DIR ${NUTTX_DIR}/../prebuild)
+endif()
 if(NOT EXISTS ${BES_PREBUILD_DIR}/mk2cmake.py)
   set(BES_PREBUILD_DIR ${NUTTX_DIR}/../../prebuild)
 endif()
